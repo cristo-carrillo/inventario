@@ -1,17 +1,13 @@
 package com.procesos.inventario.services;
 
 import com.procesos.inventario.models.User;
-import com.procesos.inventario.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
-@Service
-@RequiredArgsConstructor
-public class UserService {
+import java.util.List;
 
-    private final UserRepository userRepository;
-    public User getUser(Long id){
+public interface UserService {
 
-        return userRepository.findById(id).get();
-    }
+    User getUser(Long id);
+    Boolean createUser(User user);
+    List<User> allUser();
+    Boolean updateUser(Long id, User user);
 }
