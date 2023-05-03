@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
+import static com.procesos.inventario.utils.Constants.PASSWORD_INCORRECT;
+import static com.procesos.inventario.utils.Constants.USER_NOT_FOUND;
+
 @Service
 @RequiredArgsConstructor
 public class UserServiceImp implements UserService {
@@ -57,10 +60,10 @@ public class UserServiceImp implements UserService {
     public String login(User user) {
         Optional<User> userBd = userRepository.findByEmail(user.getEmail());
         if(userBd.isEmpty()){
-            throw new RuntimeException("Usuario no encontrado");
+            throw new RuntimeException(USER_NOT_FOUND);
         }
         if(!userBd.get().getPassword().equals(user.getPassword())){
-            throw new RuntimeException("Contraseña incorrecta");
+            throw new RuntimeException(PASSWORD_INCORRECT);
         }
         return jwtUtil.create(String.valueOf(userBd.get().getId()),
                 user.getEmail());

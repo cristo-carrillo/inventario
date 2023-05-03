@@ -1,84 +1,67 @@
 package com.procesos.inventario.controllers;
 
 import com.procesos.inventario.models.User;
-import com.procesos.inventario.services.UserServiceImp;
+import com.procesos.inventario.services.UserService;
+import com.procesos.inventario.utils.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
+import static com.procesos.inventario.utils.Constants.*;
 
 @RestController
 @RequestMapping("/user")
 @RequiredArgsConstructor
 public class UserController {
     @Autowired
-    private final UserServiceImp userServiceImp;
+    private final UserService userService;
+    private ApiResponse apiResponse;
 
     @GetMapping("/{id}")
     public ResponseEntity findUserById(@PathVariable Long id) {
-        Map<String, String> response = new HashMap<>();
         try {
-            return new ResponseEntity<>(userServiceImp.getUser(id), HttpStatus.OK);
+            apiResponse = new ApiResponse(REGISTER_FOUND, userService.getUser(id));
+            return new ResponseEntity<>(apiResponse, HttpStatus.OK);
         } catch (Exception e) {
-            response.put("status", "404");
-            response.put("message", "No se encontro el usuario!");
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            apiResponse = new ApiResponse(REGISTER_NOT_FOUND, "");
+            return new ResponseEntity<>(apiResponse, HttpStatus.NOT_FOUND);
         }
     }
 
     @PostMapping("")
     public ResponseEntity saveUser(@RequestBody User user) {
-        Map<String, String> response = new HashMap<>();
-        if (!userServiceImp.createUser(user)) {
-            response.put("status", "400");
-            response.put("message", "Error en los datos enviados");
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        if (!userService.createUser(user)) {
+            apiResponse = new ApiResponse(REGISTER_BAD, "");
+            return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
         }
-        response.put("status", "201");
-        response.put("message", "Usuario creado con éxito");
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+        apiResponse = new ApiResponse(REGISTER_CREATED, "");
+        return new ResponseEntity<>(apiResponse, HttpStatus.CREATED);
     }
 
     @GetMapping("")
     public ResponseEntity getAllUser() {
-        Map<String, String> response = new HashMap<>();
-        List<User> registeredUsers = userServiceImp.allUser();
+        List<User> registeredUsers = userService.allUser();
         if (registeredUsers.isEmpty()) {
-            response.put("status", "404");
-            response.put("message", "No hay usuarios");
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            apiResponse = new ApiResponse(REGISTER_EMPTY, "");
+            return new ResponseEntity<>(apiResponse, HttpStatus.NOT_FOUND);
         }
-        return ResponseEntity.ok(registeredUsers);
+        apiResponse = new ApiResponse(REGISTER_LIST, registeredUsers);
+        return ResponseEntity.ok(apiResponse);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity updateUser(@PathVariable Long id, @RequestBody User user) {
-        Map<String, String> response = new HashMap<>();
-        if (!userServiceImp.updateUser(id, user)) {
-            response.put("status", "400");
-            response.put("message", "Error en los datos enviados");
-            return new ResponseEntity<>(response, HttpStatus.PAYMENT_REQUIRED);
+        if (!userService.updateUser(id, user)) {
+            apiResponse = new ApiResponse(REGISTER_DATA_ERROR, "");
+            return new ResponseEntity<>(apiResponse, HttpStatus.PAYMENT_REQUIRED);
         }
-        response.put("status", "200");
-        response.put("message", "Usuario actualizado con éxito");
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        apiResponse = new ApiResponse(REGISTER_UPDATED, "");
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @PostMapping("/auth/login")
-    public ResponseEntity login(@RequestBody User user){
-        Map<String, String> response = new HashMap<>();
-        try{
-            return new ResponseEntity<>(userServiceImp.login(user), HttpStatus.OK);
-        }catch (Exception e){
-            response.put("status", "404");
-            response.put("message", e.getMessage());
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-        }
-    }
 
 }
