@@ -5,6 +5,7 @@ import com.procesos.inventario.repository.UserRepository;
 import com.procesos.inventario.utils.JWTUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,6 +17,7 @@ import static com.procesos.inventario.utils.Constants.USER_NOT_FOUND;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImp implements UserService {
+    private final PasswordEncoder passwordEncoder;
 
     private final UserRepository userRepository;
 
@@ -29,6 +31,7 @@ public class UserServiceImp implements UserService {
     @Override
     public Boolean createUser(User user) {
         try {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
             userRepository.save(user);
             return true;
         } catch (Exception e) {
@@ -49,6 +52,7 @@ public class UserServiceImp implements UserService {
             userBD.setLastName(user.getLastName());
             userBD.setBirthday(user.getBirthday());
             userBD.setAddress(user.getAddress());
+            userBD.setPassword(passwordEncoder.encode(user.getPassword()));
             userRepository.save(userBD);
             return true;
         } catch (Exception e) {
@@ -62,7 +66,7 @@ public class UserServiceImp implements UserService {
         if(userBd.isEmpty()){
             throw new RuntimeException(USER_NOT_FOUND);
         }
-        if(!userBd.get().getPassword().equals(user.getPassword())){
+        if(!passwordEncoder.matches(user.getPassword(), userBd.get().getPassword())){
             throw new RuntimeException(PASSWORD_INCORRECT);
         }
         return jwtUtil.create(String.valueOf(userBd.get().getId()),
